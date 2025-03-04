@@ -6,8 +6,8 @@ Maintainer   : CS 131, Programming Languages (Melissa O'Neill, Chris Stone, Ben 
 
 module PicParser where
 
-import PicAST  -- This is the same abstract syntax as last week's assignment
-import ParserCombinators
+import           ParserCombinators
+import           PicAST
 
 
 -- | A picture consists of one or more elements (which can handle leading

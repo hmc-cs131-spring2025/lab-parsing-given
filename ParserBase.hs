@@ -14,9 +14,9 @@ module ParserBase (Parser,pfail,get,parse,parseFile,parseNamed,
 
         -- Also, is instances of Functor, Applicative, Monad and MonadPlus
 
-import Control.Applicative hiding (optional)
-import Control.Monad
-import Control.Monad.Fail
+import           Control.Applicative hiding (optional)
+import           Control.Monad
+import           Control.Monad.Fail
 
 -- Our parser carries both the status of the most recent parse attempted
 -- and the "deepest error" found so far.  That way, when the whole parse
@@ -58,7 +58,7 @@ eof = ParsingFunction tryRead
 -- | Given a 'Parser a' and an input string, return a value of type 'a' if the parser
 --   matches the entire input string.
 parse :: Parser a -> String -> a
-parse p = parseNamed p "<input>" 
+parse p = parseNamed p "<input>"
 
 -- | Given a 'Parser a' and the path to a file, return a value of type 'IO a' if the parser
 --   matches the entire contents of the file.
@@ -66,9 +66,9 @@ parseFile :: Parser a -> String -> IO a
 parseFile parser fileName =  parseNamed parser fileName <$> readFile fileName
 
 parseNamed :: Parser a -> String -> String -> a
-parseNamed (ParsingFunction f) fileName inputString = 
+parseNamed (ParsingFunction f) fileName inputString =
     case f ("No (known) error", (0,0)) (inputString,(1,1)) of
-        (_,   Success result ("", _)) -> 
+        (_,   Success result ("", _)) ->
             result
         (bErr@(bMsg,bPosn), Success result (_,  posn))  ->
             makeError $ if bPosn >= posn then bErr
@@ -77,17 +77,17 @@ parseNamed (ParsingFunction f) fileName inputString =
             makeError err
     where
         makeError (msg, (line,col)) =
-            error (fileName ++ ":" ++ show line ++ ":" ++ show col ++ " -- " 
+            error (fileName ++ ":" ++ show line ++ ":" ++ show col ++ " -- "
                    ++ msg)
 
 -- Combine two parsers using an 'or' type operation -- this is the
--- code used for mplus and <|>       
-orElseWithMergedErr :: Parser a -> Parser a -> Parser a 
+-- code used for mplus and <|>
+orElseWithMergedErr :: Parser a -> Parser a -> Parser a
 orElseWithMergedErr (ParsingFunction f) (ParsingFunction g) =
    ParsingFunction f_or_g
    where f_or_g err1 state =
-             case f err1 state of 
-                 (err2, Failure ffail@(why_f,pos_f)) -> 
+             case f err1 state of
+                 (err2, Failure ffail@(why_f,pos_f)) ->
                      case g err2 state of
                          (err3, Failure gfail@(why_g,pos_g)) ->
                              if pos_f > pos_g then (err3, Failure ffail)
@@ -99,13 +99,13 @@ orElseWithMergedErr (ParsingFunction f) (ParsingFunction g) =
 -- code used for <||>, this version throws away any error information produced
 -- by the first parser, the only error information is the information produced
 -- by the second one.
-orElse :: Parser a -> Parser a -> Parser a 
+orElse :: Parser a -> Parser a -> Parser a
 orElse (ParsingFunction f) (ParsingFunction g) =
    ParsingFunction f_or_g
    where f_or_g err1 state =
-             case f err1 state of 
+             case f err1 state of
                  (_, Failure _) -> g err1 state
-                 success -> success
+                 success        -> success
 
 -- | Alternatives. Succeeds if either parser succeeds. If the parse fails, the error
 --   information comes from the second parser.
@@ -124,7 +124,7 @@ succeeding :: a -> Parser a -> Parser a
 succeeding fallback (ParsingFunction f) = ParsingFunction f'
    where f' err1 state = (err2, Success result state'')
              where ~(err2, result,state'') =   -- <-- vital lazy match!!!
-                       case f err1 state of 
+                       case f err1 state of
                            (err2, Success x state') -> (err2, x, state')
                            (err2, Failure _)        -> (err2, fallback, state)
 
@@ -136,10 +136,10 @@ instance Monad Parser where
     return x  = ParsingFunction (\err state -> (err, Success x state))
 
     -- | The "bind" (or "and-then") operator
-    ParsingFunction f >>= makeG = ParsingFunction f_then_g 
-        where f_then_g err1 str = 
+    ParsingFunction f >>= makeG = ParsingFunction f_then_g
+        where f_then_g err1 str =
                   case f err1 str of
-                      (err2, Success x state') -> 
+                      (err2, Success x state') ->
                           let ParsingFunction g = makeG x
                           in  g err2 state'
                       (err2, Failure whypos) -> (err2, Failure whypos)

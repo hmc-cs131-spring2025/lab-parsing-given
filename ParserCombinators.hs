@@ -1,7 +1,7 @@
 {-|
 Module       : ParserCombinators
 Description  : Re-definitions of basic parsers and parser combinators from
-               class and lab . Also, some definitions of more parser combinators.               
+               class and lab . Also, some definitions of more parser combinators.
 Maintainer   : CS 131, Programming Languages (Melissa O'Neill, Chris Stone, Ben Wiedermann)
 -}
 
@@ -20,7 +20,7 @@ module ParserCombinators (
       -- * Primitive parsers and combinators
       -- | The types of these items are a little strange because we implement them
       --   using a more general feature of Haskell (Alternatives and Monads).
-      --   If you want to learn more about the types and purposes of these items, 
+      --   If you want to learn more about the types and purposes of these items,
       --   __see the documentation for basic parsers on the course website.__
     , get
     , return
@@ -76,11 +76,11 @@ module ParserCombinators (
       -- * Repetition, alternation, options, and delimiting
     , many
       -- | Zero or more matches. Think of the type as:
-      -- 
+      --
       -- > many :: Parser a -> Parser [a]
     , some
       -- | One or more matches. Think of the type as:
-      -- 
+      --
       -- > some :: Parser a -> Parser [a]
     , many1, skipMany, skipMany1, optional, perhaps, manyEndingWith
     , someEndingWith, between, sepBy, sepBy1, endBy, endBy1, chainr1, chainl1
@@ -90,21 +90,21 @@ module ParserCombinators (
 
     ) where
 
-import Data.Char as Char  -- so we can use toUpper, isDigit, etc. in this file.
+import           Data.Char  as Char
 
 --------------------------------------------------------------------------------
--- Basic parsers and parser combinators 
+-- Basic parsers and parser combinators
 --------------------------------------------------------------------------------
 
-import ParserBase
+import           ParserBase
 
 -- The import above gives us:
 --
 --    pfail  :: Parser a
 --    return :: a -> Parser a
 --    get    :: Parser Char
---    <|>    :: Parser a -> Parser a -> Parser a 
---    <||>   :: Parser a -> Parser a -> Parser a 
+--    <|>    :: Parser a -> Parser a -> Parser a
+--    <||>   :: Parser a -> Parser a -> Parser a
 --    >>=    :: Parser a ->  (a -> Parser b) -> Parser b
 --
 -- and
@@ -130,9 +130,9 @@ import ParserBase
 --------------------------------------------------------------------------------
 
 -- | Given a parser, transform its result by passing it through a provided function
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (>>=:) :: Parser a -> (a -> b) -> Parser b
 infixl 1 >>=:
 (>>=:) :: Functor parser => parser a -> (a -> b) -> parser b
@@ -141,9 +141,9 @@ infixl 1 >>=:
 
 -- | Given a parser, ignore is result and instead, if the parser succeeds
 --   always return a specific value.
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (>>:) :: Parser a -> b -> Parser b
 infixl 1 >>:
 (>>:) :: Functor parser => parser a -> b -> parser b
@@ -152,11 +152,11 @@ p >>: v  = fmap (const v) p
 
 -- | Given a parser and a predicate, return the result of the parser only if
 --   it also satisfies the predicate.
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (<=>) :: Parser a -> (a -> Bool) -> Parser a
-infix 7 <=> 
+infix 7 <=>
 (<=>) :: MonadPlus parser => parser a -> (a -> Bool) -> parser a
 (<=>) = flip mfilter
 
@@ -166,9 +166,9 @@ infix 7 <=>
 --     2. runs the second parser on what remains in the input
 --     3. returns a pair of their results
 --   If either of the parsers fail, the whole thing fails.
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (<+>) :: Parser a -> Parser b -> Parser (a, b)
 infixl 6 <+>
 (<+>) :: Applicative parser => parser a -> parser b -> parser (a,b)
@@ -184,9 +184,9 @@ p <+> q = (,) <$> p <*> q
 --        the same kind of thing
 --     3. returns a list of things
 --   If either of the parsers fail, the whole thing fails.
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (<:>) :: Parser a -> Parser [a] -> Parser [a]
 infixr 5 <:>
 (<:>) :: Applicative parser => parser a -> parser [a] -> parser [a]
@@ -200,10 +200,10 @@ p <:> q = (:) <$> p <*> q
 --
 -- For example:
 --     *ParserCombinators> parse (get <+-> get) "ab"
---     'a'    
--- 
+--     'a'
+--
 --   Think of the type as
--- 
+--
 --   > (<+->) :: Parser a -> Parser b -> Parser a
 infixl 6 <+->
 (<+->) :: Applicative parser => parser a -> parser b -> parser a
@@ -217,10 +217,10 @@ infixl 6 <+->
 --
 -- For example:
 --     *ParserCombinators> parse (get <-+> get) "ab"
---     'b'    
--- 
+--     'b'
+--
 --   Think of the type as
--- 
+--
 --   > (<-+>) :: Parser a -> Parser b -> Parser b
 infixl 6 <-+>
 (<-+>) :: Applicative parser => parser a -> parser b -> parser b
@@ -235,9 +235,9 @@ infixl 6 <-+>
 -- For example:
 --     *ParserCombinators> parse (get <-+-> get) "ab"
 --     ()
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (<-+->) :: Parser a -> Parser b -> Parser ()
 infixl 6 <-+->
 (<-+->) :: Applicative parser => parser a -> parser b -> parser ()
@@ -250,9 +250,9 @@ p <-+-> q = p *> q *> pure ()
 --        list
 --     3. concatenate the two lists
 --   If either of the parsers fail, the whole thing fails.
--- 
+--
 --   Think of the type as
--- 
+--
 --   > (<++>) :: Parser [a] -> Parser [a] -> Parser [a]
 infixr 5 <++>
 (<++>) :: Applicative parser => parser [a] -> parser [a] -> parser [a]
@@ -270,7 +270,7 @@ getCharThat predicate = get <=> predicate
                       <??> "Different kind of character expected"
 
 
--- | Parse a single character that is a digit                   
+-- | Parse a single character that is a digit
 digit :: Parser Char
 digit  = getCharThat isDigit
 
@@ -291,8 +291,8 @@ alphanum = digit <|> letter
 
 
 -- | Returns c, if c is the next character in the input
---   NOTE: This parser adds a better error message using <??>. 
---         To see the difference, compare the error messages from these two 
+--   NOTE: This parser adds a better error message using <??>.
+--         To see the difference, compare the error messages from these two
 --         parsers that look for a single 'x':
 --                parse (get <=> (== 'x')) "y"
 --                parse (char 'x') "y"
@@ -331,7 +331,7 @@ litstring = skipws (char '"' <-+> many stringchar <+-> char '"')
 --   character inside our string)
 stringchar :: Parser Char
 stringchar =   getCharThat (/= '"')
-           <|> (string "\\\""                       >>: '\"')                    
+           <|> (string "\\\""                       >>: '\"')
 
 
 --------------------------------------------------------------------------------
@@ -441,7 +441,7 @@ doub =  (integer <+> decimal  >>=: \(i, d) -> (read :: String -> Double) (i ++ d
           decimal =  char '.' <:> (
                         -- It has an exponent
                         (numeric <+> exponent >>=: uncurry (++))
-                        -- Just a decimal, nothing else                        
+                        -- Just a decimal, nothing else
                  <|> numeric)
 
           exponent :: Parser String
@@ -521,7 +521,7 @@ perhaps = (join <$>) . optional
 manyEndingWith :: Alternative parser => parser b -> parser a -> parser [a]
 manyEndingWith end p =     (end                        >>:  [])
                        <|> (p <+> manyEndingWith end p >>=: \(r,rs) -> r:rs)
-                    
+
 
 -- | Equivalent to
 --      some p <+-> end
@@ -549,12 +549,12 @@ someEndingWith end p = (:) <$> p <*> manyEndingWith end p
 --   > between :: Parser a -> Parser b -> Parser c -> Parser c
 between :: Applicative parser =>
                parser open -> parser close -> parser a -> parser a
-between open close p = open <-+> p <+-> close     
+between open close p = open <-+> p <+-> close
 
 
 -- | Given two parsers p and sep, succeeds if the input string contains
 --   a sep-delimited sequence of one or more things that match p. The delimiters
---   will be thrown away and we'll be left with a list of all the matches for p.        
+--   will be thrown away and we'll be left with a list of all the matches for p.
 --
 --   Think of the type as:
 --
@@ -566,7 +566,7 @@ sepBy1 p sep = p <:> many (sep <-+> p)
 -- | Given two parsers p and sep, succeeds if the input string contains
 --   a sep-delimited sequence of zero or more things that match p. The delimiters
 --   will be thrown away and we'll be left with a (possibly empty) list of all
---   the matches for p. 
+--   the matches for p.
 --
 --   Think of the type as:
 --
@@ -576,7 +576,7 @@ sepBy p sep =    sepBy1 p sep
              <|> pure []
 
 
--- | Similar to 'sepBy', but the delimiter must also appear at the end.             
+-- | Similar to 'sepBy', but the delimiter must also appear at the end.
 --
 --   Think of the type as:
 --
@@ -585,7 +585,7 @@ endBy :: Alternative parser => parser a -> parser sep -> parser [a]
 endBy p sep = many (p <+-> sep)
 
 
--- | Similar to 'sepBy1', but the delimiter must also appear at the end.             
+-- | Similar to 'sepBy1', but the delimiter must also appear at the end.
 --
 --   Think of the type as:
 --
@@ -600,17 +600,17 @@ endBy1 p sep = some (p <+-> sep)
 --
 --   > chainr1 :: Parser a -> Parser (a -> a -> a) -> Parser a
 chainr1 :: Alternative parser => parser a -> parser (a -> a -> a) -> parser a
-chainr1 p op = flip (foldr (\(r,f) a -> f r a)) <$> many (p <+> op) <*> p 
+chainr1 p op = flip (foldr (\(r,f) a -> f r a)) <$> many (p <+> op) <*> p
 
 
--- | Non-greedy chainr1 
---   The above definition of chainr1 is greedy, if it sees "1 + 2 + 3 + !", 
+-- | Non-greedy chainr1
+--   The above definition of chainr1 is greedy, if it sees "1 + 2 + 3 + !",
 --   it'll fail the whole parse at the "!" rather than successfully parsing
 --   "1 + 2 + 3" and leaving the "+ !" unread.  That's usually a good thing
 --   because it gives better error messages, but sometimes in a more ambigious
 --   grammar it'll cause problems.  This version gives that latter behavior.
 chainr1weak :: Parser a -> Parser (a -> a -> a) -> Parser a
-chainr1weak p op = 
+chainr1weak p op =
     do first <- p
        succeeding first (do comb  <- op
                             rest  <- chainr1weak p op
@@ -627,8 +627,8 @@ chainl1 p op = foldl (\a (f,r) -> f a r) <$> p <*> many (op <+> p)
 
 
 --------------------------------------------------------------------------------
--- Better error messages 
--- 
+-- Better error messages
+--
 -- These combinators allow us to have nicer error messages when parsing fails.
 -- You don't need to modify these combinators.
 --------------------------------------------------------------------------------
