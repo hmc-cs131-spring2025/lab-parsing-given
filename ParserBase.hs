@@ -133,7 +133,7 @@ succeeding fallback (ParsingFunction f) = ParsingFunction f'
 instance Monad Parser where
 
     -- | A parser that always succeeds and returns 'x'
-    return x  = ParsingFunction (\err state -> (err, Success x state))
+    -- return x  = ParsingFunction (\err state -> (err, Success x state))
 
     -- | The "bind" (or "and-then") operator
     ParsingFunction f >>= makeG = ParsingFunction f_then_g
@@ -159,7 +159,7 @@ instance MonadPlus Parser where
     mplus = orElseWithMergedErr
 
 instance Applicative Parser where
-    pure = return
+    pure x = ParsingFunction (\err state -> (err, Success x state))
     (<*>) = ap
 
 instance Alternative Parser where
